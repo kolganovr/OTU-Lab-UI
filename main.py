@@ -2,7 +2,7 @@ import flet
 import re
 from Equation import LastEquation
 from Equation import DifferentialEquationSystem
-from flet import ElevatedButton, Page, Text, TextField, icons
+from flet import ElevatedButton, Page, Text, TextField, icons, Dropdown
 import numpy as np
 
 
@@ -61,13 +61,15 @@ def main(page: Page):
     title1 = Text("Ввод порядка модели", weight="bold", size=20)
     t = Text()
     # Проверка на ввод цифр, запятой и точки
-    inp_filter = flet.InputFilter(regex_string= r"^-?\d*[\.,]?\d+$",allow= True, replacement_string="")
+    inp_filter = flet.InputFilter(regex_string= r"^-?\d*[\.,]?\d*$",allow= True, replacement_string="")
 
-    modelOrder = TextField(label="Порядок модели", on_change=orderChanged, keyboard_type=flet.KeyboardType.NUMBER,
-                           # Фильтр для задания значений только 2 и 3
-                           input_filter=flet.InputFilter(regex_string= r"^[23]+$",allow= True, replacement_string= ""))
-    a0 = TextField(label="a0",disabled=True,  input_filter= inp_filter)
-    a1 = TextField(label="a1", disabled=True, on_change= check_input)
+    modelOrder = Dropdown(label="Порядок модели", options=[
+        flet.dropdown.Option("2"),
+        flet.dropdown.Option("3")], 
+        width=200, on_change=orderChanged)
+    
+    a0 = TextField(label="a0",disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
+    a1 = TextField(label="a1", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter, on_change= check_input)
     a2 = TextField(label="a2", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
     a3 = TextField(label="a3", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
     b0 = TextField(label="b0", disabled=False, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
@@ -79,8 +81,9 @@ def main(page: Page):
     x__0 = TextField(label="x''(0)", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
 
     title3 = Text("Выбор y(t)", weight="bold", size=20)
-    y_dropdown = flet.Dropdown(options=[flet.dropdown.Option("y(t) = 1"),
-                                        flet.dropdown.Option("y(t) = sin(t)")])
+    y_dropdown = Dropdown(label="y(t)", options=[
+        flet.dropdown.Option("1"),
+        flet.dropdown.Option("sin(t)")], width=200)
 
 
     def func_3(t, x, y, last_equation: LastEquation):

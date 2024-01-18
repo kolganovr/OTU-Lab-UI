@@ -9,24 +9,81 @@ import numpy as np
 def main(page: Page):
     page.title = "Лабораторная работа №1"
     page.window_width = 900
-    page.window_height = 900
+    page.window_height = 970
 
+    def validateData():
+        problemFields = []
+        # Проверка на ввод всех необходимых данных в нужные поля
+        global fields 
+        fields = {'Порядок': modelOrder,
+                'a0': a0,
+                'a1': a1,
+                'a2': a2,
+                'a3': a3,
+                'b0': b0,
+                'x0': x0,
+                'x_0': x_0,
+                'x__0': x__0,
+                'y(t)': y_dropdown,
+                'Интервал t': interval}
+        
+        if not modelOrder.value:
+            problemFields.append(modelOrder)
 
-    def check_input(e):
-        input_value = e.control.value
-        pattern = r'^[0-9,.-]+$'
-        if(re.search(pattern, input_value) == False):
-            e.control.error_text = "input numbers!"
-        else:
-            e.control.error_text = ""
-        page.update()
+        elif modelOrder.value == "2":
+            fieldsToCheck = ['a0', 'a1', 'a2', 'x0', 'x_0']
+            for field in fieldsToCheck:
+                if not fields[field].value:
+                    problemFields.append(fields[field])
 
+        elif modelOrder.value == "3":
+            fieldsToCheck = ['a0', 'a1', 'a2', 'a3', 'b0', 'x0', 'x_0', 'x__0']
+            for field in fieldsToCheck:
+                if not fields[field].value:
+                    problemFields.append(fields[field])
+        
+        if not y_dropdown.value:
+            problemFields.append(y_dropdown)
+        if not interval.value:
+            problemFields.append(interval)
+
+        if len(problemFields) != 0:
+            # Всем пробленным полям добавляется иконка ошибки 
+            for field in problemFields:
+                field.icon = icons.ERROR_OUTLINE
+
+            # Функция для закрытия диалогового окна
+            def closeDialog(e):
+                page.dialog.open = False
+                page.update()
+            
+            # Создание диалогового окна с ошибкой
+            errorDialog = flet.AlertDialog(
+                modal=True,
+                title=Text("Ошибка ввода данных"),
+                content=Text("Заполнены не все необходимые поля"),
+                actions=[
+                    flet.TextButton("OK", on_click=closeDialog),
+                ],
+                actions_alignment=flet.MainAxisAlignment.END,
+            )
+
+            page.dialog = errorDialog
+            errorDialog.open = True
+            page.update()
+            return
 
     # Функция отправки введенный данных для вычисления
     def sendData(e):
-        t.value = (
-            f"Textboxes values are: Order = {modelOrder.value}, a0 = {a0.value}, a1 = {a1.value}, a2 = {a2.value}, a3 = {a3.value}, b0 = {b0.value}, x0 = {x0.value}, x_0 = {x_0.value}, x__0 = {x__0.value}"
-        )
+        # Валидация данных на предмет заполненности полей
+        validateData()
+        
+        text = ''
+        for key, value in fields.items():
+            if value.value:
+                text += f'{key}: {value.value}, '
+        t.value = text[:-2]
+
         page.update()
 
     def orderChanged(e):
@@ -57,33 +114,46 @@ def main(page: Page):
                 filed.value = ""
                 filed.disabled = True
         page.update()
+    
+    # Удаляет иконку ошибки при наведении на поле
+    def removeIcon(e):
+        if e.control.icon is not None:
+            e.control.icon = None
+            page.update()
 
     title1 = Text("Ввод порядка модели", weight="bold", size=20)
     t = Text()
+
     # Проверка на ввод цифр, запятой и точки
     inp_filter = flet.InputFilter(regex_string= r"^-?\d*[\.,]?\d*$",allow= True, replacement_string="")
 
     modelOrder = Dropdown(label="Порядок модели", options=[
         flet.dropdown.Option("2"),
         flet.dropdown.Option("3")], 
-        width=200, on_change=orderChanged)
+        width=200, 
+        on_change=orderChanged, 
+        on_focus=removeIcon)
     
-    a0 = TextField(label="a0",disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
-    a1 = TextField(label="a1", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter, on_change= check_input)
-    a2 = TextField(label="a2", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
-    a3 = TextField(label="a3", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
-    b0 = TextField(label="b0", disabled=False, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
+    a0 = TextField(label="a0", disabled=True,  keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon)
+    a1 = TextField(label="a1", disabled=True,  keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon)
+    a2 = TextField(label="a2", disabled=True,  keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon)
+    a3 = TextField(label="a3", disabled=True,  keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon)
+    b0 = TextField(label="b0", disabled=False, keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon)
 
     title2 = Text("Ввод начальных условий", weight="bold", size=20)
 
-    x0 = TextField(label="x(0)", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
-    x_0 = TextField(label="x'(0)", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
-    x__0 = TextField(label="x''(0)", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter= inp_filter)
+    x0   = TextField(label="x(0)"  , disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon)
+    x_0  = TextField(label="x'(0)" , disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon)
+    x__0 = TextField(label="x''(0)", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon)
 
-    title3 = Text("Выбор y(t)", weight="bold", size=20)
+    title3 = Text("Выбор параметров", weight="bold", size=20)
     y_dropdown = Dropdown(label="y(t)", options=[
         flet.dropdown.Option("1"),
-        flet.dropdown.Option("sin(t)")], width=200)
+        flet.dropdown.Option("sin(t)")], 
+        width=200, 
+        on_focus=removeIcon
+    )
+    interval = TextField(label="Интервал интегрирования", keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon)
 
 
     def func_3(t, x, y, last_equation: LastEquation):
@@ -107,8 +177,7 @@ def main(page: Page):
     # x0 = [x0, x_0, x__0]  # начальные условия
     # t_span = [0, 20]  # интервал интегрирования
 
-
-    sendData = ElevatedButton(text="Отправить", on_click=sendData, icon=icons.SEND)
+    sendDataButton = ElevatedButton(text="Отправить", on_click=sendData, icon=icons.SEND)
 
     # page.add(
     #     flet.DataTable(
@@ -149,13 +218,11 @@ def main(page: Page):
     #             )
     #         ]
     #     ),
-    #     sendData
+    #     sendDataButton
     # )
 
-
-
     # Расставляем элементы на странице
-    page.add(title1, modelOrder, a0, a1, a2, a3, b0, title2, x0, x_0, x__0,title3, y_dropdown, sendData, t)
+    page.add(title1, modelOrder, a0, a1, a2, a3, b0, title2, x0, x_0, x__0,title3, y_dropdown, interval, sendDataButton, t)
 
 # Запускаем приложение
 flet.app(target=main)

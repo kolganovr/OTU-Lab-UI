@@ -14,7 +14,7 @@ from flet import (
 )
 import numpy as np # Нужно импортить только нужное
 from math import sin
-from os import remove
+from os import remove, path, makedirs
 
 PATH_TO_GRAPH = "data\graph.png"
 
@@ -137,6 +137,11 @@ def main(page: Page):
         # Решение системы
         solution = system.solve()
         # Вывод графиков
+
+        # Проверка наличия папки data
+        if not path.exists("data"):
+            makedirs("data")
+
         if(lastEquation.n == 3):
             plt.plot(solution.t, solution.y[0], label='x(t)')
             plt.plot(solution.t, solution.y[1], label="x'(t)")

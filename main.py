@@ -14,9 +14,11 @@ from flet import (
 )
 import numpy as np # Нужно импортить только нужное
 from math import sin
-from os import remove, path, makedirs
+from os import remove, path, makedirs, listdir, rename
 
-PATH_TO_GRAPH = "data\graph.png"
+PATH_TO_GRAPh = "data\graph.png"
+
+graphChanged = False
 
 # Функция для решения системы 2 порядка
 def func(t, x, y, last_equation: LastEquation):
@@ -67,7 +69,7 @@ def main(page: Page):
             problemFields.append(modelOrder)
 
         elif modelOrder.value == "2":
-            fieldsToCheck = ['a0', 'a1', 'a2', 'x0', 'x_0']
+            fieldsToCheck = ['a0', 'a1', 'a2', 'b0', 'x0', 'x_0']
             for field in fieldsToCheck:
                 if not fields[field].value:
                     problemFields.append(fields[field])
@@ -101,12 +103,19 @@ def main(page: Page):
             page.dialog = errorDialog
             errorDialog.open = True
             page.update()
-            return
+            return 0
+
+        return 1
 
     # Функция отправки введенный данных для вычисления
     def sendData(e):
         # Валидация данных на предмет заполненности полей
-        validateData()
+        if (not validateData()):
+            return
+
+        # Сохраняем пустой график
+        plt.clf()
+
         # Выбор параметров для последнего уравнения
         lastEquation = LastEquation(int(modelOrder.value))
         if(lastEquation.n == 3):
@@ -142,25 +151,22 @@ def main(page: Page):
         if not path.exists("data"):
             makedirs("data")
 
+        plt.plot(solution.t, solution.y[0], label='x(t)')
+        plt.plot(solution.t, solution.y[1], label="x'(t)")
+
         if(lastEquation.n == 3):
-            plt.plot(solution.t, solution.y[0], label='x(t)')
-            plt.plot(solution.t, solution.y[1], label="x'(t)")
-            plt.plot(solution.t, solution.y[2], label="x''(t)")
-            plt.xlabel('t')
-            plt.ylabel('x')
-            plt.legend()
-            plt.grid()
-            plt.savefig(PATH_TO_GRAPH)
-        else:
-            plt.plot(solution.t, solution.y[0], label='x(t)')
-            plt.plot(solution.t, solution.y[1], label="x'(t)")
-            plt.xlabel('t')
-            plt.ylabel('x')
-            plt.legend()
-            plt.grid()
-            plt.savefig(PATH_TO_GRAPH)
+            plt.plot(solution.t, solution.y[2], label="x''(t)")            
         
-        # Открытие SnackBar с уведомлением
+        plt.xlabel('t')
+        plt.ylabel('x')
+        plt.legend()
+        plt.grid()
+        plt.savefig(PATH_TO_GRAPh)
+
+        global graphChanged
+        graphChanged = True
+        
+        # Открытие SnackBar с уведомлением об успешном расчёте
         successNotification = SnackBar(
             Text("Решение успешно вычислено"),
             bgcolor=colors.GREEN_200
@@ -258,7 +264,38 @@ def main(page: Page):
             page.controls = [card1, card2, card3, button, egg, navBar]
         elif event.control.selected_index == 1:
             # Вторая страница
+            # Переименовываем файл графика
+            global graphChanged
+            if graphChanged:
+                global PATH_TO_GRAPh
+                newpath = PATH_TO_GRAPh[:-4] + "_.png"
+                rename(PATH_TO_GRAPh, newpath)
+                PATH_TO_GRAPh = newpath
+
+            # Поле для графика
+            imageCard = Card(
+                Container(
+                    Column(
+                        [
+                            Text("График", weight="bold", size=20),
+                            ResponsiveRow(
+                                [
+                                    Image(
+                                        src=PATH_TO_GRAPh,
+                                        col={"md": 12},
+                                        height = 500
+                                    )
+                                ] 
+                            )
+                        ],
+                    spacing=15
+                    ),
+                padding=20
+                )        
+            )
             page.controls = [imageCard, navBar]
+            graphChanged = False
+
         page.update()
 
     navBar = NavigationBar(
@@ -270,7 +307,6 @@ def main(page: Page):
         on_change=on_navBar_change
     )
     
-
     # Карточка с вводом информации о порядке модели
     card1 = Card(
         Container(
@@ -333,27 +369,6 @@ def main(page: Page):
         )
     )
 
-    # Поле для графика
-    imageCard = Card(
-        Container(
-            Column(
-                [
-                    Text("График", weight="bold", size=20),
-                    ResponsiveRow(
-                        [
-                            Image(
-                                src=PATH_TO_GRAPH,
-                                col={"md": 12},
-                                height = 500
-                            )
-                        ] 
-                    )
-                ],
-            spacing=15
-            ),
-        padding=20
-        )        
-    )
     # Пасхалка с авторами
     def openEgg(e):
         eggDialog = AlertDialog(
@@ -375,7 +390,10 @@ def main(page: Page):
 
 def removeGraph():
     try:
-        remove(PATH_TO_GRAPH)
+        # Удалем все файлы в папке data
+        for file in listdir("data"):
+            remove("data\\" + file)
+
     except FileNotFoundError:
         pass
 

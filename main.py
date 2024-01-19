@@ -2,24 +2,28 @@ import matplotlib.pyplot as plt
 from Solve import Solver, LastEquation
 from flet import (
     # Layout controls
-    Page, Container, Column, ResponsiveRow, Card,
+    Page, Container, Column, ResponsiveRow, Card, NavigationBar, NavigationDestination, Image,
     # Input controls
     TextField, Dropdown, dropdown, InputFilter, KeyboardType,
     # Button controls
     ElevatedButton, Text, TextButton, icons,
     # Dialogs
-    AlertDialog,
+    AlertDialog, SnackBar,
     # Other
-    app
+    app, colors
 )
 import numpy as np # Нужно импортить только нужное
+from math import sin
+from os import remove
+
+PATH_TO_GRAPH = "data\graph.png"
 
 # Функция для решения системы 2 порядка
 def func(t, x, y, last_equation: LastEquation):
     if(y == "1"):
         y_param = 1
     else:
-        y_param = math.sin(t)
+        y_param = sin(t)
 
     if(last_equation.n == 2):
         dxdt = np.zeros(2)
@@ -36,7 +40,7 @@ def func(t, x, y, last_equation: LastEquation):
 def main(page: Page):
     page.title = "Лабораторная работа №1"
     page.window_width = 900
-    page.window_height = 730
+    page.window_height = 800
 
     # Функция для закрытия диалогового окна
     def closeDialog(e):
@@ -140,14 +144,24 @@ def main(page: Page):
             plt.xlabel('t')
             plt.ylabel('x')
             plt.legend()
-            plt.show()
+            plt.grid()
+            plt.savefig(PATH_TO_GRAPH)
         else:
             plt.plot(solution.t, solution.y[0], label='x(t)')
             plt.plot(solution.t, solution.y[1], label="x'(t)")
             plt.xlabel('t')
             plt.ylabel('x')
             plt.legend()
-            plt.show()
+            plt.grid()
+            plt.savefig(PATH_TO_GRAPH)
+        
+        # Открытие SnackBar с уведомлением
+        successNotification = SnackBar(
+            Text("Решение успешно вычислено"),
+            bgcolor=colors.GREEN_200
+        )
+        successNotification.open = True
+        page.snack_bar = successNotification
 
         page.update()
 
@@ -233,7 +247,24 @@ def main(page: Page):
         dxdt[0] = x[1]
         dxdt[1] = (1 / last_equation.a_2) * (last_equation.b_0*y - last_equation.a_1*x[1] - last_equation.a_0*x[0])
 
-    sendDataButton = ElevatedButton(text="Отправить", on_click=sendData, icon=icons.SEND, height=50)
+    def on_navBar_change(event):
+        if event.control.selected_index == 0:
+            # Первая страница
+            page.controls = [card1, card2, card3, button, egg, navBar]
+        elif event.control.selected_index == 1:
+            # Вторая страница
+            page.controls = [imageCard, navBar]
+        page.update()
+
+    navBar = NavigationBar(
+        destinations=[
+            NavigationDestination(label="Параметры", icon=icons.EDIT_OUTLINED, selected_icon=icons.EDIT),
+            NavigationDestination(label="Результаты", icon=icons.AUTO_GRAPH),
+        ],
+        height=70,
+        on_change=on_navBar_change
+    )
+    
 
     # Карточка с вводом информации о порядке модели
     card1 = Card(
@@ -292,11 +323,32 @@ def main(page: Page):
     button = Container(
         ResponsiveRow(
             [
-                sendDataButton
+                ElevatedButton(text="Отправить", on_click=sendData, icon=icons.SEND, height=50)
             ]
         )
     )
 
+    # Поле для графика
+    imageCard = Card(
+        Container(
+            Column(
+                [
+                    Text("График", weight="bold", size=20),
+                    ResponsiveRow(
+                        [
+                            Image(
+                                src=PATH_TO_GRAPH,
+                                col={"md": 12},
+                                height = 500
+                            )
+                        ] 
+                    )
+                ],
+            spacing=15
+            ),
+        padding=20
+        )        
+    )
     # Пасхалка с авторами
     def openEgg(e):
         eggDialog = AlertDialog(
@@ -311,8 +363,21 @@ def main(page: Page):
         page.dialog = eggDialog
         eggDialog.open = True
         page.update()
+    
+    egg = TextButton(on_click=openEgg, icon=icons.INFO_OUTLINE)
+    
+    page.add(card1, card2, card3, button, egg, navBar)
 
-    page.add(card1, card2, card3, button, TextButton(on_click=openEgg, icon=icons.INFO_OUTLINE))
+def removeGraph():
+    try:
+        remove(PATH_TO_GRAPH)
+    except FileNotFoundError:
+        pass
+
+# Удаляем файл с графиком
+removeGraph()
 
 # Запускаем приложение
 app(target=main)
+
+removeGraph()

@@ -50,7 +50,7 @@ def func(t, x, y, last_equation: LastEquation):
 def main(page: Page):
     page.title = "Лабораторная работа №1"
     page.window_width = 900
-    page.window_height = 810
+    page.window_height = 800
     heightMinus = 0
 
     # Получаем разрешение экрана
@@ -120,6 +120,9 @@ def main(page: Page):
             page.update()
             return 0
 
+        for field in fields.values():
+            field.value = str(field.value).replace(",", ".")
+
         return 1
 
     # Функция отправки введенный данных для вычисления
@@ -155,7 +158,8 @@ def main(page: Page):
             y0 = [float(x0.value), float(x_0.value)]
 
         # Интервал интегрирования
-        t_span = [0, int(interval.value)]
+        interval.value = int(float(interval.value))
+        t_span = [0, interval.value]
         # Составление системы для решения
         system = Solver(func, y0, t_span, y_parametr, lastEquation)
         # Решение системы
@@ -430,7 +434,6 @@ def main(page: Page):
         controls=[
             card1, card2, card3, button, egg],
         spacing=10,
-        padding=10,
         height=page.window_height - 70 - heightMinus,
     )
     

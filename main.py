@@ -1,10 +1,18 @@
-import flet
 import re
-from Equation import LastEquation
-from Equation import DifferentialEquationSystem
-from flet import ElevatedButton, Page, Text, TextField, icons, Dropdown
-import numpy as np
-
+from Equation import LastEquation, DifferentialEquationSystem
+from flet import (
+    # Layout controls
+    Page, Container, Column, ResponsiveRow, Card,
+    # Input controls
+    TextField, Dropdown, dropdown, InputFilter, KeyboardType,
+    # Button controls
+    ElevatedButton, Text, TextButton, icons,
+    # Dialogs
+    AlertDialog,
+    # Other
+    app
+)
+import numpy as np # Нужно импортить только нужное
 
 def main(page: Page):
     page.title = "Лабораторная работа №1"
@@ -58,14 +66,13 @@ def main(page: Page):
                 page.update()
             
             # Создание диалогового окна с ошибкой
-            errorDialog = flet.AlertDialog(
+            errorDialog = AlertDialog(
                 modal=True,
                 title=Text("Ошибка ввода данных"),
                 content=Text("Заполнены не все необходимые поля"),
                 actions=[
-                    flet.TextButton("OK", on_click=closeDialog),
-                ],
-                actions_alignment=flet.MainAxisAlignment.END,
+                    TextButton("OK", on_click=closeDialog),
+                ]
             )
 
             page.dialog = errorDialog
@@ -117,36 +124,36 @@ def main(page: Page):
     title1 = Text("Ввод порядка модели", weight="bold", size=20)
 
     # Проверка на ввод цифр, запятой и точки
-    inp_filter = flet.InputFilter(regex_string= r"^-?\d*[\.,]?\d*$",allow= True, replacement_string="")
+    inp_filter = InputFilter(regex_string= r"^-?\d*[\.,]?\d*$",allow= True, replacement_string="")
 
     modelOrder = Dropdown(label="Порядок модели", options=[
-        flet.dropdown.Option("2"),
-        flet.dropdown.Option("3")],
+        dropdown.Option("2"),
+        dropdown.Option("3")],
         col={"md": 12},
         on_change=orderChanged, 
         on_focus=removeIcon)
     
-    a0 = TextField(label="a0", disabled=True,  keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
-    a1 = TextField(label="a1", disabled=True,  keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
-    a2 = TextField(label="a2", disabled=True,  keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
-    a3 = TextField(label="a3", disabled=True,  keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 6})
-    b0 = TextField(label="b0", disabled=False, keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 6})
+    a0 = TextField(label="a0", disabled=True,  keyboard_type=KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
+    a1 = TextField(label="a1", disabled=True,  keyboard_type=KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
+    a2 = TextField(label="a2", disabled=True,  keyboard_type=KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
+    a3 = TextField(label="a3", disabled=True,  keyboard_type=KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 6})
+    b0 = TextField(label="b0", disabled=False, keyboard_type=KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 6})
 
     title2 = Text("Ввод начальных условий", weight="bold", size=20)
 
-    x0   = TextField(label="x(0)"  , disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
-    x_0  = TextField(label="x'(0)" , disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
-    x__0 = TextField(label="x''(0)", disabled=True, keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
+    x0   = TextField(label="x(0)"  , disabled=True, keyboard_type=KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
+    x_0  = TextField(label="x'(0)" , disabled=True, keyboard_type=KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
+    x__0 = TextField(label="x''(0)", disabled=True, keyboard_type=KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 4})
 
     title3 = Text("Выбор параметров", weight="bold", size=20)
     y_dropdown = Dropdown(label="y(t)", options=[
-        flet.dropdown.Option("1"),
-        flet.dropdown.Option("sin(t)")], 
+        dropdown.Option("1"),
+        dropdown.Option("sin(t)")], 
         width=200, 
         on_focus=removeIcon,
         col={"md": 6}
     )
-    interval = TextField(label="Интервал интегрирования", keyboard_type=flet.KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 6})
+    interval = TextField(label="Интервал интегрирования", keyboard_type=KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 6})
 
 
     def func_3(t, x, y, last_equation: LastEquation):
@@ -172,74 +179,67 @@ def main(page: Page):
     sendDataButton = ElevatedButton(text="Отправить", on_click=sendData, icon=icons.SEND, height=50)
 
     # Карточка с вводом информации о порядке модели
-    card1 = flet.Card(
-        flet.Container(
-            flet.Column(
+    card1 = Card(
+        Container(
+            Column(
                 [
                     title1,
                     modelOrder,
-                    flet.ResponsiveRow(
+                    ResponsiveRow(
                         [a0, a1, a2]
                     ),
                     
-                    flet.ResponsiveRow(
+                    ResponsiveRow(
                         [a3, b0]
                     )
                 ],
                 spacing=15
             ),
-            alignment=flet.alignment.center,
             padding=20
         )
     )
     
     # Карточка с вводом информации о начальных условиях
-    card2 = flet.Card(
-        flet.Container(
-            flet.Column(
+    card2 = Card(
+        Container(
+            Column(
                 [
                     title2,
-                    flet.ResponsiveRow(
+                    ResponsiveRow(
                         [x0, x_0, x__0]
                     )
                 ],
                 spacing=15
             ),
-            alignment=flet.alignment.center,
             padding=20
         )
     )
 
     # Карточка с вводом информации об интервале интегрирования
-    card3 = flet.Card(
-        flet.Container(
-            flet.Column(
+    card3 = Card(
+        Container(
+            Column(
                 [
                     title3,
-                    flet.ResponsiveRow(
+                    ResponsiveRow(
                         [y_dropdown, interval]
                     )
                 ],
                 spacing=15
             ),
-            alignment=flet.alignment.center,
             padding=20
         )
     )
 
     # Кнопка отправки
-    button = flet.Container(
-        flet.ResponsiveRow(
+    button = Container(
+        ResponsiveRow(
             [
                 sendDataButton
-            ],
-            alignment=flet.alignment.center
+            ]
         )
     )
     page.add(card1, card2, card3, button)
 
-    # Расставляем элементы на странице
-    # page.add(title1, modelOrder, a0, a1, a2, a3, b0, title2, x0, x_0, x__0,title3, y_dropdown, interval, sendDataButton, t)
-
 # Запускаем приложение
-flet.app(target=main)
+app(target=main)

@@ -19,6 +19,11 @@ def main(page: Page):
     page.window_width = 900
     page.window_height = 730
 
+    # Функция для закрытия диалогового окна
+    def closeDialog(e):
+        page.dialog.open = False
+        page.update()
+
     def validateData():
         problemFields = []
         # Проверка на ввод всех необходимых данных в нужные поля
@@ -59,11 +64,6 @@ def main(page: Page):
             # Всем пробленным полям добавляется иконка ошибки 
             for field in problemFields:
                 field.icon = icons.ERROR_OUTLINE
-
-            # Функция для закрытия диалогового окна
-            def closeDialog(e):
-                page.dialog.open = False
-                page.update()
             
             # Создание диалогового окна с ошибкой
             errorDialog = AlertDialog(
@@ -239,7 +239,23 @@ def main(page: Page):
             ]
         )
     )
-    page.add(card1, card2, card3, button)
+
+    # Пасхалка с авторами
+    def openEgg(e):
+        eggDialog = AlertDialog(
+            modal=True,
+            title=Text("Авторы"),
+            content=Text("Колганов Роман\nПлюснин Савелий\nЕгоров Дмитрий\nГунько Данила"),
+            actions=[
+                TextButton("Спасибо", on_click=closeDialog),
+            ]
+        )
+
+        page.dialog = eggDialog
+        eggDialog.open = True
+        page.update()
+    
+    page.add(card1, card2, card3, button, TextButton(on_click=openEgg, icon=icons.INFO_OUTLINE))
 
 # Запускаем приложение
 app(target=main)

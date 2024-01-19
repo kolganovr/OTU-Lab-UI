@@ -1,5 +1,5 @@
 from matplotlib.pyplot import (
-    plot, xlabel, ylabel, legend, grid, savefig, clf
+    plot, xlabel, ylabel, legend, grid, savefig, clf, figure
 )
 from Solve import Solver, LastEquation
 from flet import (
@@ -25,6 +25,7 @@ path_to_eq1 = "data\eq1.png"
 path_to_eq2 = "data\eq2.png"
 
 graphChanged = False
+eqChanged = False
 
 global heightMinus 
 
@@ -47,11 +48,25 @@ def func(t, x, y, last_equation: LastEquation):
         dxdt[2] = (1 / last_equation.a_3) * (last_equation.b_0*y_param - last_equation.a_2*x[2] - last_equation.a_1*x[1] - last_equation.a_0*x[0])
         return dxdt
 
+def getLatexCodeForNonKoshi(order, a0, a1, a2, a3, b0):
+    if order == 2:
+        return f"${a2:g} \cdot x_{{2}}''(t) + {a1:g} \cdot x_{{1}}'(t) + {a0:g} \cdot x_{{0}}(t) = {b0:g} \cdot y(t)$"
+    else:
+        return f"${a3:g} \cdot x_{{3}}'''(t) + {a2:g} \cdot x_{{2}}''(t) + {a1:g} \cdot x_{{1}}'(t) + {a0:g} \cdot x_{{0}}(t) = {b0:g} \cdot y(t)$"
+    
 def getLatexCodeForKoshi(order, a0, a1, a2, a3, b0):
     if order == 2:
-        return f"$$\\begin{{cases}} x'_{{1}}(t) = x_{{2}}(t),\\\\ x'_{{2}}(t) = \\frac{1}{a2} \cdot ({b0} \cdot y(t) - {a1} \cdot x_{{1}}(t) - {a0} \cdot x_{{0}}(t)) \\end{{cases}}$$"
+        fraction = ""
+        if a2 != 1:
+            fraction = f"\\frac{{1}}{{{a2:g}}} \cdot "
+
+        return f"$x'_{{1}}(t) = x_{{2}}(t),$" + '\n' + f"$x'_{{2}}(t) = {fraction} ({b0:g} \cdot y(t) - {a1:g} \cdot x_{{1}}(t) - {a0:g} \cdot x_{{0}}(t)).$"
     else:
-        return f"$$\\begin{{cases}} x'_{{1}}(t) = x_{{2}}(t),\\\\ x'_{{2}}(t) = x_{{3}}(t),\\\\ x'_{{3}}(t) = \\frac{1}{a3} \cdot ({b0} \cdot y(t) - {a2} \cdot x_{{2}}(t) - {a1} \cdot x_{{1}}(t) - {a0} \cdot x_{{0}}(t)) \\end{{cases}}$$"
+        fraction = ""
+        if a3 != 1:
+            fraction = f"\\frac{{1}}{{{a3:g}}} \cdot "
+
+        return f"$x'_{{1}}(t) = x_{{2}}(t),$" + '\n' + f"$x'_{{2}}(t) = x_{{3}}(t),$" + '\n' + f"$x'_{{3}}(t) = {fraction} ({b0:g} \cdot y(t) - {a2:g} \cdot x_{{2}}(t) - {a1:g} \cdot x_{{1}}(t) - {a0:g} \cdot x_{{0}}(t)).$"
 
 def main(page: Page):
     page.title = "Лабораторная работа №1"
@@ -94,6 +109,9 @@ def main(page: Page):
             for field in fieldsToCheck:
                 if not fields[field].value:
                     problemFields.append(fields[field])
+            
+            if a2.value == "0":
+                problemFields.append(a2)
 
         elif modelOrder.value == "3":
             fieldsToCheck = ['a0', 'a1', 'a2', 'a3', 'b0', 'x0', 'x_0', 'x__0']
@@ -101,10 +119,14 @@ def main(page: Page):
                 if not fields[field].value:
                     problemFields.append(fields[field])
 
+            if a3.value == "0":
+                problemFields.append(a3)
+
         if not y_dropdown.value:
             problemFields.append(y_dropdown)
         if not interval.value:
             problemFields.append(interval)
+
 
         if len(problemFields) != 0:
             # Всем пробленным полям добавляется иконка ошибки
@@ -130,6 +152,23 @@ def main(page: Page):
             field.value = str(field.value).replace(",", ".")
 
         return 1
+    
+    def saveEquation(code, path):
+        fig = figure()
+        ax = fig.add_axes([0,0,1,1])
+
+        t = ax.text(0.5, 0.5, code,
+        horizontalalignment='center',
+        verticalalignment='center',
+        fontsize=20, color='black')
+
+        bbox = t.get_window_extent()
+
+        # Установка размеров области отрисовки
+        fig.set_size_inches(bbox.width/80,bbox.height/80) # dpi=80
+
+        ### Отрисовка или сохранение формулы в файл
+        savefig(path, dpi=400)
 
     # Функция отправки введенный данных для вычисления
     def sendData(e):
@@ -137,12 +176,19 @@ def main(page: Page):
         if (not validateData()):
             return
         if not a3.value:
-            a3.value = None
+            a3.value = 0
 
-        latexCode = getLatexCodeForKoshi(int(modelOrder.value), float(a0.value), float(a1.value), float(a2.value), float(a3.value), float(b0.value))
-        
+        latexCodeNonKoshi = getLatexCodeForNonKoshi(int(modelOrder.value), float(a0.value), float(a1.value), float(a2.value), float(a3.value), float(b0.value))
+        latexCodeKoshi = getLatexCodeForKoshi(int(modelOrder.value), float(a0.value), float(a1.value), float(a2.value), float(a3.value), float(b0.value))
+
+        saveEquation(latexCodeNonKoshi, path_to_eq1)
+        saveEquation(latexCodeKoshi, path_to_eq2)
+
         # Сохраняем пустой график
         clf()
+
+        # Задаем размеры графика
+        fig = figure()
 
         # Выбор параметров для последнего уравнения
         lastEquation = LastEquation(int(modelOrder.value))
@@ -194,6 +240,8 @@ def main(page: Page):
 
         global graphChanged
         graphChanged = True
+        global eqChanged
+        eqChanged = True
         
         # Открытие SnackBar с уведомлением об успешном расчёте
         successNotification = SnackBar(
@@ -313,6 +361,18 @@ def main(page: Page):
             graphChanged = False
         elif event.control.selected_index == 2:
             # Третья страница
+            global eqChanged
+            if eqChanged:
+                global path_to_eq1
+                global path_to_eq2
+                newpathToEq1 = path_to_eq1[:-4] + "_.png"
+                newpathToEq2 = path_to_eq2[:-4] + "_.png"
+                rename(path_to_eq1, newpathToEq1)
+                rename(path_to_eq2, newpathToEq2)
+                path_to_eq1 = newpathToEq1
+                path_to_eq2 = newpathToEq2
+
+            # Третья страница
             eqCard1 = Card(
                 Container(
                     Column(
@@ -320,7 +380,9 @@ def main(page: Page):
                             Text("Уравнение в обыкновенной форме", weight="bold", size=20),
                             ResponsiveRow(
                                 [
-                                    Image()
+                                    Image(
+                                        src=path_to_eq1
+                                    )
                                 ],
                                 spacing=15
                             )
@@ -337,7 +399,7 @@ def main(page: Page):
                             Text("Уравнение в нормальной форме Коши", weight="bold", size=20),
                             ResponsiveRow(
                                 [
-                                    Image()
+                                    Image(src=path_to_eq2)
                                 ],
                                 spacing=15
                             )
@@ -348,6 +410,8 @@ def main(page: Page):
                 )
             )
             page.controls = [eqCard1, eqCard2, navBar]
+
+            eqChanged = False
 
         page.update()
 

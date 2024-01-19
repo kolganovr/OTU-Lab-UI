@@ -40,5 +40,5 @@ class Solver:
                                  method='RK45',
                                  # Параметр, определяющий моменты времени (100 точек),
                                  # в которые будет выполняться интерполяция результата
-                                 t_eval=linspace(self.t_span[0], self.t_span[1], 100), args=(self.y, self.last_equation))
+                                 t_eval=linspace(self.t_span[0], self.t_span[1], 300), args=(self.y, self.last_equation))
             return solution

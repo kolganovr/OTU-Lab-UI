@@ -1,4 +1,4 @@
-import numpy as np
+from numpy import linspace
 from scipy.integrate import solve_ivp
 # Класс инициализирующий все параметры конечного уравнения
 class LastEquation(object):
@@ -40,5 +40,5 @@ class Solver:
                                  method='RK45',
                                  # Параметр, определяющий моменты времени (100 точек),
                                  # в которые будет выполняться интерполяция результата
-                                 t_eval=np.linspace(self.t_span[0], self.t_span[1], 100), args=(self.y, self.last_equation))
+                                 t_eval=linspace(self.t_span[0], self.t_span[1], 100), args=(self.y, self.last_equation))
             return solution

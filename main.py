@@ -1,4 +1,6 @@
-import matplotlib.pyplot as plt
+from matplotlib.pyplot import (
+    plot, xlabel, ylabel, legend, grid, savefig, clf
+)
 from Solve import Solver, LastEquation
 from flet import (
     # Layout controls
@@ -12,7 +14,7 @@ from flet import (
     # Other
     app, colors
 )
-import numpy as np # Нужно импортить только нужное
+from numpy import zeros
 from math import sin
 from os import remove, path, makedirs, listdir, rename
 from screeninfo import get_monitors
@@ -34,12 +36,12 @@ def func(t, x, y, last_equation: LastEquation):
         y_param = sin(t)
 
     if(last_equation.n == 2):
-        dxdt = np.zeros(2)
+        dxdt = zeros(2)
         dxdt[0] = x[1]
         dxdt[1] = (1 / last_equation.a_2) * (last_equation.b_0*y_param - last_equation.a_1*x[1] - last_equation.a_0*x[0])
         return dxdt
     else:
-        dxdt = np.zeros(3)
+        dxdt = zeros(3)
         dxdt[0] = x[1]
         dxdt[1] = x[2]
         dxdt[2] = (1 / last_equation.a_3) * (last_equation.b_0*y_param - last_equation.a_2*x[2] - last_equation.a_1*x[1] - last_equation.a_0*x[0])
@@ -48,7 +50,7 @@ def func(t, x, y, last_equation: LastEquation):
 def main(page: Page):
     page.title = "Лабораторная работа №1"
     page.window_width = 900
-    page.window_height = 800
+    page.window_height = 810
     heightMinus = 0
 
     # Получаем разрешение экрана
@@ -127,7 +129,7 @@ def main(page: Page):
             return
 
         # Сохраняем пустой график
-        plt.clf()
+        clf()
 
         # Выбор параметров для последнего уравнения
         lastEquation = LastEquation(int(modelOrder.value))
@@ -164,17 +166,17 @@ def main(page: Page):
         if not path.exists("data"):
             makedirs("data")
 
-        plt.plot(solution.t, solution.y[0], label='x(t)')
-        plt.plot(solution.t, solution.y[1], label="x'(t)")
+        plot(solution.t, solution.y[0], label='x(t)')
+        plot(solution.t, solution.y[1], label="x'(t)")
 
         if(lastEquation.n == 3):
-            plt.plot(solution.t, solution.y[2], label="x''(t)")            
+            plot(solution.t, solution.y[2], label="x''(t)")            
         
-        plt.xlabel('t')
-        plt.ylabel('x')
-        plt.legend()
-        plt.grid()
-        plt.savefig(PATH_TO_GRAPh)
+        xlabel('t')
+        ylabel('x')
+        legend()
+        grid()
+        savefig(PATH_TO_GRAPh)
 
         global graphChanged
         graphChanged = True
@@ -257,19 +259,6 @@ def main(page: Page):
         col={"md": 6}
     )
     interval = TextField(label="Интервал интегрирования", keyboard_type=KeyboardType.NUMBER, input_filter=inp_filter, on_focus=removeIcon, col={"md": 6})
-
-
-    def func_3(t, x, y, last_equation: LastEquation):
-        dxdt = np.zeros(3)
-        dxdt[0] = x[1]
-        dxdt[1] = x[2]
-        dxdt[2] = (1 / last_equation.a_3) * (last_equation.b_0*y - last_equation.a_2*x[2] - last_equation.a_1*x[1] - last_equation.a_0*x[0])
-        return dxdt
-
-    def func_2(t, x, y, last_equation: LastEquation):
-        dxdt = np.zeros(2)
-        dxdt[0] = x[1]
-        dxdt[1] = (1 / last_equation.a_2) * (last_equation.b_0*y - last_equation.a_1*x[1] - last_equation.a_0*x[0])
 
     def on_navBar_change(event):
         if event.control.selected_index == 0:

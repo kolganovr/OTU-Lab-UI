@@ -47,6 +47,12 @@ def func(t, x, y, last_equation: LastEquation):
         dxdt[2] = (1 / last_equation.a_3) * (last_equation.b_0*y_param - last_equation.a_2*x[2] - last_equation.a_1*x[1] - last_equation.a_0*x[0])
         return dxdt
 
+def getLatexCodeForKoshi(order, a0, a1, a2, a3, b0):
+    if order == 2:
+        return f"$$\\begin{{cases}} x'_{{1}}(t) = x_{{2}}(t),\\\\ x'_{{2}}(t) = \\frac{1}{a2} \cdot ({b0} \cdot y(t) - {a1} \cdot x_{{1}}(t) - {a0} \cdot x_{{0}}(t)) \\end{{cases}}$$"
+    else:
+        return f"$$\\begin{{cases}} x'_{{1}}(t) = x_{{2}}(t),\\\\ x'_{{2}}(t) = x_{{3}}(t),\\\\ x'_{{3}}(t) = \\frac{1}{a3} \cdot ({b0} \cdot y(t) - {a2} \cdot x_{{2}}(t) - {a1} \cdot x_{{1}}(t) - {a0} \cdot x_{{0}}(t)) \\end{{cases}}$$"
+
 def main(page: Page):
     page.title = "Лабораторная работа №1"
     page.window_width = 900
@@ -130,7 +136,11 @@ def main(page: Page):
         # Валидация данных на предмет заполненности полей
         if (not validateData()):
             return
+        if not a3.value:
+            a3.value = None
 
+        latexCode = getLatexCodeForKoshi(int(modelOrder.value), float(a0.value), float(a1.value), float(a2.value), float(a3.value), float(b0.value))
+        
         # Сохраняем пустой график
         clf()
 
@@ -170,14 +180,14 @@ def main(page: Page):
         if not path.exists("data"):
             makedirs("data")
 
-        plot(solution.t, solution.y[0], label='x(t)')
-        plot(solution.t, solution.y[1], label="x'(t)")
+        plot(solution.t, solution.y[0], label='x1(t)')
+        plot(solution.t, solution.y[1], label="x2(t)")
 
         if(lastEquation.n == 3):
-            plot(solution.t, solution.y[2], label="x''(t)")            
+            plot(solution.t, solution.y[2], label="x3(t)")            
         
-        xlabel('t')
-        ylabel('x')
+        xlabel('t, с')
+        ylabel('xi(t)')
         legend()
         grid()
         savefig(PATH_TO_GRAPh)

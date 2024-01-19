@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from Solve import Solver, LastEquation
 from flet import (
     # Layout controls
-    Page, Container, Column, ResponsiveRow, Card, NavigationBar, NavigationDestination, Image,
+    Page, Container, Column, ResponsiveRow, Card, NavigationBar, NavigationDestination, Image, ListView,
     # Input controls
     TextField, Dropdown, dropdown, InputFilter, KeyboardType,
     # Button controls
@@ -15,10 +15,16 @@ from flet import (
 import numpy as np # Нужно импортить только нужное
 from math import sin
 from os import remove, path, makedirs, listdir, rename
+from screeninfo import get_monitors
 
 PATH_TO_GRAPh = "data\graph.png"
 
+path_to_eq1 = "data\eq1.png"
+path_to_eq2 = "data\eq2.png"
+
 graphChanged = False
+
+global heightMinus 
 
 # Функция для решения системы 2 порядка
 def func(t, x, y, last_equation: LastEquation):
@@ -43,6 +49,13 @@ def main(page: Page):
     page.title = "Лабораторная работа №1"
     page.window_width = 900
     page.window_height = 800
+    heightMinus = 0
+
+    # Получаем разрешение экрана
+    for m in get_monitors():
+        page.window_height = min(m.height, page.window_height)
+        if m.height < 1080:
+            heightMinus = 30
 
     # Функция для закрытия диалогового окна
     def closeDialog(e):
@@ -261,7 +274,7 @@ def main(page: Page):
     def on_navBar_change(event):
         if event.control.selected_index == 0:
             # Первая страница
-            page.controls = [card1, card2, card3, button, egg, navBar]
+            page.controls = [lv, navBar]
         elif event.control.selected_index == 1:
             # Вторая страница
             # Переименовываем файл графика
@@ -295,13 +308,51 @@ def main(page: Page):
             )
             page.controls = [imageCard, navBar]
             graphChanged = False
+        elif event.control.selected_index == 2:
+            # Третья страница
+            eqCard1 = Card(
+                Container(
+                    Column(
+                        [
+                            Text("Уравнение в обыкновенной форме", weight="bold", size=20),
+                            ResponsiveRow(
+                                [
+                                    Image()
+                                ],
+                                spacing=15
+                            )
+                        ],
+                        spacing=15
+                    ),
+                    padding=20
+                )
+            )
+            eqCard2 = Card(
+                Container(
+                    Column(
+                        [
+                            Text("Уравнение в нормальной форме Коши", weight="bold", size=20),
+                            ResponsiveRow(
+                                [
+                                    Image()
+                                ],
+                                spacing=15
+                            )
+                        ],
+                        spacing=15
+                    ),
+                    padding=20
+                )
+            )
+            page.controls = [eqCard1, eqCard2, navBar]
 
         page.update()
 
     navBar = NavigationBar(
         destinations=[
             NavigationDestination(label="Параметры", icon=icons.EDIT_OUTLINED, selected_icon=icons.EDIT),
-            NavigationDestination(label="Результаты", icon=icons.AUTO_GRAPH),
+            NavigationDestination(label="График", icon=icons.AUTO_GRAPH),
+            NavigationDestination(label="Уравнения", icon=icons.FUNCTIONS_OUTLINED, selected_icon=icons.FUNCTIONS)
         ],
         height=70,
         on_change=on_navBar_change
@@ -385,8 +436,16 @@ def main(page: Page):
         page.update()
     
     egg = TextButton(on_click=openEgg, icon=icons.INFO_OUTLINE)
+
+    lv = ListView(
+        controls=[
+            card1, card2, card3, button, egg],
+        spacing=10,
+        padding=10,
+        height=page.window_height - 70 - heightMinus,
+    )
     
-    page.add(card1, card2, card3, button, egg, navBar)
+    page.add(lv, navBar)
 
 def removeGraph():
     try:

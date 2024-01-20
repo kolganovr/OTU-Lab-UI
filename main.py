@@ -19,6 +19,7 @@ from numpy import zeros
 from math import sin
 from os import remove, path, makedirs, listdir, rename
 from screeninfo import get_monitors
+import ctypes
 
 PATH_TO_GRAPh = "data\graph.png"
 

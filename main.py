@@ -19,7 +19,7 @@ from numpy import zeros
 from math import sin
 from os import remove, path, makedirs, listdir, rename
 from screeninfo import get_monitors
-import ctypes
+from ctypes import windll
 
 PATH_TO_GRAPh = "data\graph.png"
 
@@ -109,23 +109,23 @@ def getLatexCodeForKoshi(order, a0, a1, a2, a3, b0):
         if a2 != 1:
             fraction = f"\\frac{{1}}{{{a2:g}}} \cdot "
 
-        return f"$x'_{{1}}(t) = x_{{2}}(t),$" + '\n' + f"$x'_{{2}}(t) = {fraction} ({b0:g} \cdot y(t) - {a1:g} \cdot x_{{1}}(t) - {a0:g} \cdot x_{{0}}(t)).$"
+        return f"$x_{{1}}'(t) = x_{{2}}(t),$" + '\n' + f"$x_{{2}}'(t) = {fraction} ({b0:g} \cdot y(t) - {a1:g} \cdot x_{{1}}(t) - {a0:g} \cdot x_{{0}}(t)).$"
     else:
         fraction = ""
         if a3 != 1:
             fraction = f"\\frac{{1}}{{{a3:g}}} \cdot "
 
-        return f"$x'_{{1}}(t) = x_{{2}}(t),$" + '\n' + f"$x'_{{2}}(t) = x_{{3}}(t),$" + '\n' + f"$x'_{{3}}(t) = {fraction} ({b0:g} \cdot y(t) - {a2:g} \cdot x_{{2}}(t) - {a1:g} \cdot x_{{1}}(t) - {a0:g} \cdot x_{{0}}(t)).$"
+        return f"$x_{{1}}'(t) = x_{{2}}(t),$" + '\n' + f"$x_{{2}}'(t) = x_{{3}}(t),$" + '\n' + f"$x_{{3}}'(t) = {fraction} ({b0:g} \cdot y(t) - {a2:g} \cdot x_{{2}}(t) - {a1:g} \cdot x_{{1}}(t) - {a0:g} \cdot x_{{0}}(t)).$"
 
 def main(page: Page):
     page.title = "Лабораторная работа №1"
     page.window_width = 900
-    if ctypes.windll.shcore.GetScaleFactorForDevice(0) == 150:
+    if windll.shcore.GetScaleFactorForDevice(0) == 150:
         page.window_height = 646
     else:
         page.window_height = 800
+    
     heightMinus = 0
-
     # Получаем разрешение экрана
     for m in get_monitors():
         page.window_height = min(m.height, page.window_height)

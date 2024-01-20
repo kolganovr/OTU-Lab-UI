@@ -119,7 +119,10 @@ def getLatexCodeForKoshi(order, a0, a1, a2, a3, b0):
 def main(page: Page):
     page.title = "Лабораторная работа №1"
     page.window_width = 900
-    page.window_height = 800
+    if ctypes.windll.shcore.GetScaleFactorForDevice(0) == 150:
+        page.window_height = 646
+    else:
+        page.window_height = 800
     heightMinus = 0
 
     # Получаем разрешение экрана
